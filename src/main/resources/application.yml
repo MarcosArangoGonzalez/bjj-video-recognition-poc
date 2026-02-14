@@ -1,0 +1,106 @@
+spring:
+  application:
+    name: bjj-video-recognition-poc
+  
+  datasource:
+    url: jdbc:h2:mem:videodb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  
+  servlet:
+    multipart:
+      max-file-size: 500MB
+      max-request-size: 500MB
+  
+  # ===================================================================
+  # Spring AI Configuration (MODULAR - CHANGE HERE TO SWITCH MODELS)
+  # ===================================================================
+  profiles:
+    active: vertex # Cambiar a 'openai' si es necesario
+
+server:
+  port: 8080
+
+# Google Cloud Storage Configuration
+google:
+  cloud:
+    project-id: ${GOOGLE_CLOUD_PROJECT_ID:video-intelligence-480312}
+    credentials:
+      location: ${GOOGLE_APPLICATION_CREDENTIALS:classpath:gcp.credentials.json}
+    storage:
+      bucket-name: ${GCS_BUCKET_NAME:bjj-videos-poc}
+
+# Application Configuration
+app:
+  jwt-secret: daf66e01593f61a15b857cf433aae03a005812b3123456789012345678901234
+  jwt-expiration-milliseconds: 604800000
+  video:
+    upload-dir: uploads
+    frames-per-second: 2
+    allowed-extensions: mp4,avi,mov,mkv
+    max-duration-seconds: 600
+    frame-interval-seconds: 0.5
+
+---
+# Perfil: Vertex AI Gemini
+spring:
+  config:
+    activate:
+      on-profile: vertex
+  autoconfigure:
+    exclude: 
+      - org.springframework.ai.autoconfigure.openai.OpenAiAutoConfiguration
+  ai:
+    vertex:
+      ai:
+        gemini:
+          project-id: video-intelligence-480312
+          location: us-central1
+          credentials:
+            location: classpath:gcp.credentials.json
+          chat:
+            options:
+              model: gemini-2.0-flash
+              temperature: 0.3
+              max-tokens: 4096
+              top-p: 0.3
+              top-k: 40
+
+# Ensure YOLOv8 is enabled
+yolov8:
+  service:
+    enabled: true
+    url: http://localhost:8081
+
+---
+# Perfil: OpenAI
+spring:
+  config:
+    activate:
+      on-profile: openai
+  autoconfigure:
+    exclude: 
+      - org.springframework.ai.autoconfigure.vertexai.gemini.VertexAiGeminiAutoConfiguration
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        options:
+          model: gpt-4o-mini
+          temperature: 0.1
+
+
