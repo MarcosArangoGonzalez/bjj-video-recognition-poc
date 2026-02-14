@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  yolov8-service:
+    build:
+      context: ./python
+      dockerfile: Dockerfile
+    container_name: bjj-yolov8-service
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./python/yolov8_service.py:/app/yolov8_service.py
+      - ./python/hybrid_bjj_detector.py:/app/hybrid_bjj_detector.py
+      - ./python/roboflow_integration.py:/app/roboflow_integration.py
+      - ./python/cascading_bjj_detector.py:/app/cascading_bjj_detector.py
+      - ./models:/app/models
+      - ./python/temp_frames:/app/temp_frames
+      - ./annotations.json:/app/annotations.json
+    env_file:
+      - ./python/.env
+    environment:
+      - USE_GPU=true
+      - DEFAULT_FPS=2
+      - PORT=8081
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Spring Boot application (to be run separately for now)
+  # spring-app:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.spring
+  #   ports:
+  #     - "8080:8080"
+  #   depends_on:
+  #     - yolov8-service
+  #   environment:
+  #     - YOLOV8_SERVICE_URL=http://yolov8-service:8081
+
+networks:
+  default:
+    name: bjj-network

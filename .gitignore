@@ -1,0 +1,39 @@
+# Java
+target/
+*.class
+*.jar
+*.war
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.env
+.venv/
+
+# Node.js
+frontend/node_modules/
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specifics
+datasets/
+models/
+runs/
+uploads/
+*.tar.gz
+annotations.json
+server.log
+roboflow_model_predictions.json
+src/main/resources/gcp.credentials.json
