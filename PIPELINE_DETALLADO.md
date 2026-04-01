@@ -1,4 +1,4 @@
-# Pipeline de análisis de vídeo (detalle técnico)
+# Pipeline de análisis de video (detalle técnico)
 
 Este documento explica el flujo completo **desde la subida del vídeo hasta la salida final** del sistema, incluyendo clases Java, microservicios Python, modelos (`.pt`, `.pkl`) y librerías usadas.
 
