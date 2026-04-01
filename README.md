@@ -67,7 +67,7 @@ A proof-of-concept application demonstrating automated video analysis for Brazil
 - [📖 Setup Guide](SETUP.md) - Detailed setup instructions
 - [📚 API Documentation](API.md) - REST API reference
 - [🔗 Integration Guide](INTEGRATION.md) - How to integrate into your main project
-- [🧭 Detailed Pipeline Guide](PIPELINE_DE_ANALISIS_DE_VIDEO_DETALLADO.md) - End-to-end flow upload → analysis → output (classes, model files, and libraries)
+- [🧭 Detailed Pipeline Guide](PIPELINE_DETALLADO.md) - End-to-end flow upload → analysis → output (classes, model files, and libraries)
 - [🎯 Accuracy Configuration](ACCURACY_CONFIGURATION.md) - Accuracy assumptions and detection configuration
 - [🧩 Hybrid Detection Summary](HYBRID_DETECTION_SUMMARY.md) - Hybrid detector architecture and model distribution
 
