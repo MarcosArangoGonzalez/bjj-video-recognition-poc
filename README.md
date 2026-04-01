@@ -67,6 +67,7 @@ A proof-of-concept application demonstrating automated video analysis for Brazil
 - [📖 Setup Guide](SETUP.md) - Detailed setup instructions
 - [📚 API Documentation](API.md) - REST API reference
 - [🔗 Integration Guide](INTEGRATION.md) - How to integrate into your main project
+- [🧭 Pipeline técnico detallado (ES)](PIPELINE_ANALISIS_VIDEO_DETALLADO.md) - Flujo completo upload → análisis → salida (clases, modelos y librerías)
 
 ## Project Structure
 
