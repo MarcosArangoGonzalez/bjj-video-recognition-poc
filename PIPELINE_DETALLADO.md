@@ -100,6 +100,7 @@ Este documento explica el flujo completo **desde la subida del vídeo hasta la s
 
 - `yolov8n.pt` (raíz del proyecto)
   - ruta relativa: `./yolov8n.pt`
+  - nota: este archivo está en el repositorio, pero el microservicio de poses (`python/yolov8_service.py`) usa explícitamente `yolov8n-pose.pt` como fallback para keypoints.
 
 ### 3.2 Archivos esperados en runtime (no siempre versionados)
 
@@ -109,6 +110,7 @@ Este documento explica el flujo completo **desde la subida del vídeo hasta la s
 - `yolov8n-pose.pt`
   - fallback de Ultralytics si no existe custom
   - carga en `python/yolov8_service.py` (`YOLO('yolov8n-pose.pt')`)
+  - es el artefacto de inferencia de pose/keypoints referenciado por código en runtime.
 - `models/bjj_pose_classifier.pkl`
   - clasificador local (scikit-learn) para posiciones
   - carga en `python/hybrid_bjj_detector.py`
