@@ -67,7 +67,7 @@ A proof-of-concept application demonstrating automated video analysis for Brazil
 - [📖 Setup Guide](SETUP.md) - Detailed setup instructions
 - [📚 API Documentation](API.md) - REST API reference
 - [🔗 Integration Guide](INTEGRATION.md) - How to integrate into your main project
-- [🧭 Pipeline técnico detallado (ES)](PIPELINE_ANALISIS_VIDEO_DETALLADO.md) - Flujo completo upload → análisis → salida (clases, modelos y librerías)
+- [🧭 Detailed Pipeline Guide (ES)](PIPELINE_ANALISIS_VIDEO_DETALLADO.md) - End-to-end flow upload → analysis → output (classes, model files, and libraries)
 
 ## Project Structure
 
@@ -92,7 +92,7 @@ bjj-video-recognition-poc/
 1. **Upload**: User uploads a BJJ video through the web interface
 2. **Pose Extraction (YOLOv8)**: A Python microservice extracts pose keypoints frame by frame.
 3. **Hybrid Detection**:
-   - **Local Random Forest** predicts BJJ positions (18 classes, ~95.6% reported accuracy in this repo).
+   - **Local Random Forest** predicts BJJ positions (18 classes, ~95.6% as documented in `ACCURACY_CONFIGURATION.md` and `HYBRID_DETECTION_SUMMARY.md`).
    - **Roboflow model** complements with submissions/sweeps/transitions/takedowns.
 4. **Gemini Validation (Spring AI)**:
    - Gemini receives the video plus pose/hybrid context.
