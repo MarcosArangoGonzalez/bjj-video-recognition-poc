@@ -54,7 +54,7 @@ Este documento explica el flujo completo **desde la subida del vídeo hasta la s
 
 ## 2) Comunicación Java ↔ Python ↔ IA externa
 
-## 2.1 Java → Python (YOLOv8 service)
+### 2.1 Java → Python (YOLOv8 service)
 
 - Clase cliente HTTP: `src/main/java/com/bjj/videorec/service/YoloV8Service.java`
 - Endpoint Python llamado desde Java:
@@ -64,7 +64,7 @@ Este documento explica el flujo completo **desde la subida del vídeo hasta la s
   - `src/main/java/com/bjj/videorec/dto/PoseAnalysisResult.java`
   - `src/main/java/com/bjj/videorec/dto/PoseData.java`
 
-## 2.2 Python (extracción de poses + detección híbrida)
+### 2.2 Python (extracción de poses + detección híbrida)
 
 - Servicio Flask:
   - `python/yolov8_service.py`
@@ -81,7 +81,7 @@ Este documento explica el flujo completo **desde la subida del vídeo hasta la s
   6. aplica estabilización por majority vote de posición
   7. devuelve JSON con `frames[]` + técnicas detectadas.
 
-## 2.3 Java → Gemini/OpenAI (Spring AI)
+### 2.3 Java → Gemini/OpenAI (Spring AI)
 
 - Clase: `src/main/java/com/bjj/videorec/service/SpringAiAnalysisService.java`
 - Métodos:
@@ -96,12 +96,12 @@ Este documento explica el flujo completo **desde la subida del vídeo hasta la s
 
 ## 3) Modelos y artefactos (`.pt`, `.pkl`, `.json`)
 
-## 3.1 Archivos presentes en este repo
+### 3.1 Archivos presentes en este repo
 
 - `yolov8n.pt` (raíz del proyecto)
   - ruta relativa: `./yolov8n.pt`
 
-## 3.2 Archivos esperados en runtime (no siempre versionados)
+### 3.2 Archivos esperados en runtime (no siempre versionados)
 
 - `models/bjj_custom.pt`
   - modelo YOLO custom (si existe, se prioriza sobre base)
@@ -116,7 +116,7 @@ Este documento explica el flujo completo **desde la subida del vídeo hasta la s
   - mapeo índice ↔ nombre de posición del clasificador local
   - carga en `python/hybrid_bjj_detector.py`
 
-## 3.3 Entrenamiento/evaluación de modelos locales
+### 3.3 Entrenamiento/evaluación de modelos locales
 
 - Script entrenamiento: `python/train_bjj_classifier.py`
   - genera `.pkl` y `label_mapping.json`
@@ -146,7 +146,7 @@ Este documento explica el flujo completo **desde la subida del vídeo hasta la s
 
 ## 5) Librerías concretas usadas
 
-## 5.1 Java (backend)
+### 5.1 Java (backend)
 
 - **Spring Boot 3.2**
   - `spring-boot-starter-web` (REST, multipart)
@@ -164,7 +164,7 @@ Este documento explica el flujo completo **desde la subida del vídeo hasta la s
 
 Fuente: `pom.xml`
 
-## 5.2 Python (pose/híbrido)
+### 5.2 Python (pose/híbrido)
 
 De `python/requirements.txt`:
 - `ultralytics` (YOLOv8)

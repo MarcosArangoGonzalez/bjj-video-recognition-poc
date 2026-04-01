@@ -67,7 +67,9 @@ A proof-of-concept application demonstrating automated video analysis for Brazil
 - [📖 Setup Guide](SETUP.md) - Detailed setup instructions
 - [📚 API Documentation](API.md) - REST API reference
 - [🔗 Integration Guide](INTEGRATION.md) - How to integrate into your main project
-- [🧭 Detailed Pipeline Guide (ES)](PIPELINE_ANALISIS_VIDEO_DETALLADO.md) - End-to-end flow upload → analysis → output (classes, model files, and libraries)
+- [🧭 Detailed Pipeline Guide](PIPELINE_DE_ANALISIS_DE_VIDEO_DETALLADO.md) - End-to-end flow upload → analysis → output (classes, model files, and libraries)
+- [🎯 Accuracy Configuration](ACCURACY_CONFIGURATION.md) - Accuracy assumptions and detection configuration
+- [🧩 Hybrid Detection Summary](HYBRID_DETECTION_SUMMARY.md) - Hybrid detector architecture and model distribution
 
 ## Project Structure
 
@@ -92,7 +94,7 @@ bjj-video-recognition-poc/
 1. **Upload**: User uploads a BJJ video through the web interface
 2. **Pose Extraction (YOLOv8)**: A Python microservice extracts pose keypoints frame by frame.
 3. **Hybrid Detection**:
-   - **Local Random Forest** predicts BJJ positions (18 classes, ~95.6% as documented in `ACCURACY_CONFIGURATION.md` and `HYBRID_DETECTION_SUMMARY.md`).
+   - **Local Random Forest** predicts BJJ positions (18 classes, ~95.6% classification accuracy as documented in `ACCURACY_CONFIGURATION.md` and `HYBRID_DETECTION_SUMMARY.md`).
    - **Roboflow model** complements with submissions/sweeps/transitions/takedowns.
 4. **Gemini Validation (Spring AI)**:
    - Gemini receives the video plus pose/hybrid context.
@@ -101,7 +103,7 @@ bjj-video-recognition-poc/
 5. **Tag Generation**: Detected techniques are stored as auto-tags with confidence and timestamps.
 6. **Review/Edit**: User can review, edit, and add manual tags.
 
-### Pipeline explicado (ES)
+### Pipeline Explanation (Spanish)
 
 El pipeline real de análisis está orquestado en `BJJPoseDetectionService`:
 
@@ -110,7 +112,7 @@ El pipeline real de análisis está orquestado en `BJJPoseDetectionService`:
 3. **Gemini como árbitro final**: valida/refina las detecciones usando contexto visual + geométrico.
 4. **Fallback robusto**: si Gemini falla o devuelve vacío, se usan resultados del detector híbrido.
 
-### Peso relativo en el análisis (Random Forest, Gemini y geometría)
+### Relative Weight in Analysis (Spanish)
 
 No se usan pesos aditivos tipo “40/30/30”, sino una **jerarquía de decisión**:
 
@@ -125,7 +127,7 @@ No se usan pesos aditivos tipo “40/30/30”, sino una **jerarquía de decisió
   - Cuando Gemini devuelve detecciones válidas, esas son las que se publican.
   - Si no devuelve resultados, el sistema hace fallback al detector híbrido.
 
-### Resumen general del proyecto (ES)
+### Project Overview (Spanish)
 
 Este repositorio es una PoC para etiquetar técnicas de Brazilian Jiu-Jitsu en vídeo combinando:
 
