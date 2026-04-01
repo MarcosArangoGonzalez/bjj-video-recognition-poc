@@ -99,7 +99,7 @@ Este documento explica el flujo completo **desde la subida del vídeo hasta la s
 ## 3.1 Archivos presentes en este repo
 
 - `yolov8n.pt` (raíz del proyecto)
-  - ruta: `/home/runner/work/bjj-video-recognition-poc/bjj-video-recognition-poc/yolov8n.pt`
+  - ruta relativa: `./yolov8n.pt`
 
 ## 3.2 Archivos esperados en runtime (no siempre versionados)
 
@@ -200,4 +200,3 @@ Se exponen por API en endpoints de vídeos/tags y se consumen en frontend para r
   3. validación semántica en Gemini/OpenAI (Spring AI)
   4. fallback robusto a resultados híbridos si IA no devuelve detecciones
 - **Salida**: tags estructurados con técnica, confianza y timestamp, guardados en BD y servidos por API.
-
