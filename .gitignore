@@ -50,4 +50,13 @@ python/temp_frames/
 =======
 .docker/gcp.credentials.json
 .codex
+<<<<<<< HEAD
 >>>>>>> c3a43ac (Añadido .gitignore)
+=======
+
+python/temp_frames/
+*.pt
+
+python/temp_frames/
+*.pt
+>>>>>>> 09d0757 (Eliminados archivos generados)
