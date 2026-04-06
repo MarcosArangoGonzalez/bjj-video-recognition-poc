@@ -38,6 +38,7 @@ server.log
 roboflow_model_predictions.json
 src/main/resources/gcp.credentials.json
 
+<<<<<<< HEAD
 python/temp_frames/
 *.pt
 
@@ -46,3 +47,7 @@ python/temp_frames/
 ai-service/yolov8n-pose.pt
 python/temp_frames/
 *.pt
+=======
+.docker/gcp.credentials.json
+.codex
+>>>>>>> c3a43ac (Añadido .gitignore)
