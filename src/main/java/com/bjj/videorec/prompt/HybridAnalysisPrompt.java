@@ -78,10 +78,19 @@ public class HybridAnalysisPrompt {
             **KIMURA (Shoulder Lock)**:
             - POSITION REQUIREMENT: Usually from side control, north-south, or guard
             - MECHANIC: Attacker grabs defender's wrist with BOTH hands (figure-four grip)
-            - MECHANIC: Attacker's elbow controls defender's elbow (leverage point)
-            - MECHANIC: Rotation of defender's shoulder (external or internal)
-            - VISUAL: Clear figure-four arm configuration
+            - MECHANIC: Defender's ELBOW stays BENT around 70-120 degrees
+            - MECHANIC: Defender's hand/arm is drawn AWAY FROM THE MAT and often BEHIND the back or behind the shoulder line
+            - MECHANIC: Rotation targets the SHOULDER, not elbow hyperextension
+            - VISUAL: Figure-four grip + bent elbow + hand being lifted behind the torso/shoulder line
             - STATUS: "Attempted" if grip secured, "Secured" if shoulder rotation visible
+
+            **AMERICANA (Shoulder Lock / Paintbrush)**:
+            - POSITION REQUIREMENT: Usually from side control or mount
+            - MECHANIC: Attacker also uses a figure-four grip, BUT the defender's arm is PINNED TO THE MAT or pressed laterally beside the head/torso
+            - MECHANIC: Defender's ELBOW stays BENT around 70-120 degrees
+            - MECHANIC: Rotation happens with the forearm/wrist moving like a "paintbrush" while the elbow remains near the mat
+            - VISUAL: Figure-four grip + bent elbow + wrist/forearm pinned or dragged along the mat, NOT lifted behind the back
+            - STATUS: "Attempted" if figure-four and mat pin are visible, "Secured" if clear shoulder rotation and control are visible
 
             **ARMBAR**:
             - MECHANIC: Defender's ARM is isolated and extended (elbow angle 160-180°)
@@ -111,10 +120,13 @@ public class HybridAnalysisPrompt {
                - Guillotine: From FRONT, uses ARMS, front headlock
                - Key: Check position (back/front/bottom) AND tool (arms/legs)
 
-            3. **KIMURA vs ARMBAR**:
-               - Kimura: SHOULDER lock, figure-four grip, ROTATION
-               - Armbar: ELBOW lock, hips over shoulder, EXTENSION
-               - Key: Which joint? Shoulder = Kimura, Elbow = Armbar
+            3. **KIMURA vs AMERICANA vs ARMBAR**:
+               - Kimura: SHOULDER lock, figure-four grip, defender's arm/hands lifted BEHIND the shoulder line or away from the mat
+               - Americana: SHOULDER lock, figure-four grip, defender's arm PINNED TO THE MAT in a paintbrush motion
+               - Armbar: ELBOW lock, hips over shoulder, arm STRAIGHTENED toward 160-180 degrees
+               - Key: Shoulder lock with bent elbow + behind-the-back lift = Kimura
+               - Key: Shoulder lock with bent elbow + mat pin/paintbrush = Americana
+               - Key: Elbow extension = Armbar
 
             4. **SWEEP vs TAKEDOWN**:
                - Sweep: Reversal from BOTTOM (guard) to top
@@ -149,7 +161,10 @@ public class HybridAnalysisPrompt {
             2. Within that position, look for SUBMISSION mechanics (what attack?)
             3. Apply differentiation rules to avoid common mistakes
             4. Assign confidence based on how many constraints are satisfied
-            5. If ambiguous, prefer the simpler/more fundamental technique
+            5. If ambiguous between Kimura and Americana, use this tie-breaker:
+               - Wrist/forearm pinned to mat = Americana
+               - Wrist/hand lifted behind back or behind shoulder line = Kimura
+            6. If still ambiguous, prefer the simpler/more fundamental technique
 
             ### CONFIDENCE SCORING
             - 0.9-1.0: All geometric + biomechanical constraints clearly satisfied

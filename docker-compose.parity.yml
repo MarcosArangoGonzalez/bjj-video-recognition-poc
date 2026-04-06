@@ -1,0 +1,135 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: bjjapp
+      POSTGRES_USER: bjj
+      POSTGRES_PASSWORD: bjj
+    ports:
+      - "5432:5432"
+    volumes:
+      - parity_postgres_data:/var/lib/postgresql/data
+      - /home/marcos/Escritorio/TFG/pa/bjj-app/backend/src/sql/1-PostgresCreateTables.sql:/docker-entrypoint-initdb.d/1-create-tables.sql:ro
+      - /home/marcos/Escritorio/TFG/pa/bjj-app/backend/src/sql/2-PostgresCreateData.sql:/docker-entrypoint-initdb.d/2-seed-data.sql:ro
+      - /home/marcos/Escritorio/TFG/pa/bjj-app/backend/src/sql/2-Phase5C-DataFlywheelMigration.sql:/docker-entrypoint-initdb.d/3-phase5c-migration.sql:ro
+      - /home/marcos/Escritorio/TFG/pa/bjj-app/backend/src/sql/3-SuggestedTagsMigration.sql:/docker-entrypoint-initdb.d/4-suggested-tags-migration.sql:ro
+      - /home/marcos/Escritorio/TFG/pa/bjj-app/backend/src/sql/4-AddPlayerRoleMigration.sql:/docker-entrypoint-initdb.d/5-player-role-migration.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bjj -d bjjapp"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  poc-yolo:
+    build:
+      context: ./python
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      PORT: 8081
+      USE_GPU: ${USE_GPU:-true}
+      MODEL_PATH: /app/yolov8n-pose.pt
+      LOCAL_MODEL_PATH: /app/models/bjj_pose_classifier.pkl
+      LABEL_MAPPING_PATH: /app/models/label_mapping.json
+      ROBOFLOW_API_KEY: ${ROBOFLOW_API_KEY:-}
+    volumes:
+      - ./python/models:/app/models
+      - ./python/temp_frames:/app/temp_frames
+    ports:
+      - "8091:8081"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8081/health', timeout=10)"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  poc-spring:
+    build:
+      context: .
+      dockerfile: Dockerfile.spring-poc
+    restart: unless-stopped
+    environment:
+      SERVER_PORT: 8080
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-vertex}
+      YOLOV8_SERVICE_ENABLED: true
+      YOLOV8_SERVICE_URL: http://poc-yolo:8081
+      GOOGLE_CLOUD_PROJECT_ID: ${GOOGLE_CLOUD_PROJECT_ID:-}
+      GOOGLE_CLOUD_LOCATION: ${GOOGLE_CLOUD_LOCATION:-us-central1}
+      GOOGLE_APPLICATION_CREDENTIALS: /app/credentials/gcp.credentials.json
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+    volumes:
+      - ./uploads:/app/uploads
+      - ${GOOGLE_APPLICATION_CREDENTIALS_HOST_PATH:-./.docker/gcp.credentials.json}:/app/credentials/gcp.credentials.json:ro
+    ports:
+      - "8090:8080"
+    depends_on:
+      poc-yolo:
+        condition: service_healthy
+
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      HOST: 0.0.0.0
+      PORT: 8081
+      AI_WEBHOOK_SECRET: ${AI_WEBHOOK_SECRET:-dev-webhook-secret-2025}
+      LOCAL_STORAGE_DIR: /storage/videos
+      PYTHON_PARITY_MODE: "true"
+      SPRING_POC_ENABLED: "true"
+      SPRING_POC_BASE_URL: http://poc-spring:8080
+      SPRING_POC_TIMEOUT_SECONDS: ${SPRING_POC_TIMEOUT_SECONDS:-300}
+      SPRING_POC_POLL_INTERVAL_SECONDS: ${SPRING_POC_POLL_INTERVAL_SECONDS:-2}
+      SPRING_POC_MAX_WAIT_SECONDS: ${SPRING_POC_MAX_WAIT_SECONDS:-300}
+      GEMINI_ENABLED: "false"
+      WEBHOOK_TIMEOUT_SECONDS: 30
+      WEBHOOK_MAX_RETRIES: 2
+      WEBHOOK_RETRY_BACKOFF_SECONDS: 1.5
+    volumes:
+      - /tmp/storage/videos:/storage/videos
+    ports:
+      - "8081:8081"
+    depends_on:
+      poc-spring:
+        condition: service_started
+
+  backend:
+    build:
+      context: /home/marcos/Escritorio/TFG/pa/bjj-app/backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/bjjapp
+      SPRING_DATASOURCE_USERNAME: bjj
+      SPRING_DATASOURCE_PASSWORD: bjj
+      SPRING_JPA_HIBERNATE_DDL_AUTO: none
+      AI_WEBHOOK_SECRET: ${AI_WEBHOOK_SECRET:-dev-webhook-secret-2025}
+      AI_INTERNAL_SECRET: ${AI_INTERNAL_SECRET:-dev-internal-secret-change-in-prod}
+      VIDEOS_STORAGE_DIR: /storage/videos
+      AI_SERVICE_URL: http://ai-service:8081
+      AI_CALLBACK_URL: http://backend:8080/api/v1/analysis/webhook
+    volumes:
+      - /tmp/storage/videos:/storage/videos
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ai-service:
+        condition: service_started
+
+  frontend:
+    build:
+      context: /home/marcos/Escritorio/TFG/pa/bjj-app/frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8080
+    depends_on:
+      - backend
+
+volumes:
+  parity_postgres_data:

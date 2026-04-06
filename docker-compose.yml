@@ -1,27 +1,29 @@
-version: '3.8'
-
 services:
-  yolov8-service:
+  ai-service:
     build:
-      context: ./python
+      context: ./ai-service
       dockerfile: Dockerfile
-    container_name: bjj-yolov8-service
-    ports:
-      - "8081:8081"
+    container_name: poc-ai-service
+    network_mode: "host"
     volumes:
-      - ./python/yolov8_service.py:/app/yolov8_service.py
-      - ./python/hybrid_bjj_detector.py:/app/hybrid_bjj_detector.py
-      - ./python/roboflow_integration.py:/app/roboflow_integration.py
-      - ./python/cascading_bjj_detector.py:/app/cascading_bjj_detector.py
-      - ./models:/app/models
-      - ./python/temp_frames:/app/temp_frames
-      - ./annotations.json:/app/annotations.json
-    env_file:
-      - ./python/.env
+      - ./ai-service:/app
+      - ./python/models:/app/models
+      - /tmp/storage/videos:/app/videos
     environment:
       - USE_GPU=true
-      - DEFAULT_FPS=2
       - PORT=8081
+      - AI_WEBHOOK_SECRET=dev-webhook-secret-2025
+      - MODEL_PATH=/app/models/bjj_custom.pt
+      - LOCAL_MODEL_PATH=/app/models/bjj_pose_classifier.pkl
+      - LABEL_MAPPING_PATH=/app/models/label_mapping.json
+      # Roboflow — visual submission/sweep/transition confirmation
+      # Get key at roboflow.com → workspace bjj-885sh → project bjj-positions-eexsh
+      - ROBOFLOW_API_KEY=oBv2mUmqvMgUr8TjqUTW
+      # Multiple keys: comma-separated OR indexed vars (GEMINI_API_KEY_1, _2, ...)
+      - GEMINI_API_KEY=AIzaSyDicE2Q40cRJOb2Eo2oa-SypQw0MBPClmU
+      - GEMINI_API_KEY_2=AIzaSyDZf0AL8X2Zvk0rftEGc_kSqfBn0MSI_BU
+      - GEMINI_API_KEY_3=AIzaSyCrrb0pNX-8gt6gY3ZMRKPfGUQAXwWom3g
+      - GEMINI_MODEL=gemini-2.0-flash
     # deploy:
     #   resources:
     #     reservations:
