@@ -37,3 +37,12 @@ annotations.json
 server.log
 roboflow_model_predictions.json
 src/main/resources/gcp.credentials.json
+
+python/temp_frames/
+*.pt
+
+.codex
+.docker/gcp.credentials.json
+ai-service/yolov8n-pose.pt
+python/temp_frames/
+*.pt

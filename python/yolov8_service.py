@@ -6,9 +6,19 @@ Provides REST API for video analysis using hybrid Roboflow + annotations.json mo
 import os
 import traceback
 from pathlib import Path
-from flask import Flask, request, jsonify
-from flask_cors import CORS
-from werkzeug.utils import secure_filename
+try:
+    from flask import Flask, request, jsonify
+    from flask_cors import CORS
+except Exception:
+    Flask = None
+    request = None
+    jsonify = None
+    CORS = None
+try:
+    from werkzeug.utils import secure_filename
+except Exception:
+    def secure_filename(value):
+        return Path(str(value or "")).name
 import cv2
 import numpy as np
 from ultralytics import YOLO
@@ -18,13 +28,31 @@ from hybrid_bjj_detector import HybridBJJDetector
 # Load environment variables
 load_dotenv()
 
-app = Flask(__name__)
-CORS(app)
+if Flask is not None:
+    app = Flask(__name__)
+    if CORS is not None:
+        CORS(app)
+else:
+    class _AppStub:
+        def __init__(self):
+            import logging
+
+            self.logger = logging.getLogger(__name__)
+            self.config = {}
+
+        def route(self, *_args, **_kwargs):
+            def decorator(func):
+                return func
+            return decorator
+
+    app = _AppStub()
 
 # Configuration
 UPLOAD_FOLDER = Path('temp_frames')
 UPLOAD_FOLDER.mkdir(exist_ok=True)
 MODEL_PATH = os.getenv('MODEL_PATH', 'models/bjj_custom.pt')
+LOCAL_MODEL_PATH = os.getenv('LOCAL_MODEL_PATH', 'models/bjj_pose_classifier.pkl')
+LABEL_MAPPING_PATH = os.getenv('LABEL_MAPPING_PATH', 'models/label_mapping.json')
 USE_GPU = os.getenv('USE_GPU', 'true').lower() == 'true'
 DEFAULT_FPS = int(os.getenv('DEFAULT_FPS', '1'))
 MAX_VIDEO_SIZE_MB = int(os.getenv('MAX_VIDEO_SIZE_MB', '500'))
@@ -70,8 +98,8 @@ def load_model():
         try:
             app.logger.info("Initializing Hybrid BJJ Detector...")
             hybrid_detector = HybridBJJDetector(
-                local_model_path="models/bjj_pose_classifier.pkl",
-                label_mapping_path="models/label_mapping.json"
+                local_model_path=LOCAL_MODEL_PATH,
+                label_mapping_path=LABEL_MAPPING_PATH
             )
             app.logger.info("✓ Hybrid detector initialized (Local + Roboflow)")
         except Exception as e:
@@ -231,6 +259,130 @@ def _fallback_position_prediction(keypoints):
             return {"position": "ground_position", "positionConfidence": 0.3}
     except (StopIteration, KeyError):
         return {"position": "unknown", "positionConfidence": 0.0}
+
+
+def analyze_video_file(video_path_str, fps=2.0):
+    """
+    Analyze an existing video file without running the Flask server.
+    Mirrors the original endpoint logic as closely as possible.
+    """
+    video_path = Path(video_path_str)
+    if not video_path.exists():
+        raise FileNotFoundError(f"Video file not found: {video_path}")
+
+    app.logger.info(f"Analyzing video file at {fps} FPS for maximum accuracy: {video_path.name}")
+
+    frames_dir = Path(app.config['UPLOAD_FOLDER']) / 'frames' / video_path.stem
+    frames_dir.mkdir(parents=True, exist_ok=True)
+
+    model = load_model()
+    cap = cv2.VideoCapture(str(video_path))
+    if not cap.isOpened():
+        raise RuntimeError(f"OpenCV could not open video file: {video_path}")
+
+    video_fps = cap.get(cv2.CAP_PROP_FPS)
+    total_frames_in_video = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    if video_fps <= 0:
+        raise RuntimeError(f"Invalid video metadata for {video_path}: fps={video_fps}")
+    frame_interval = max(1, int(video_fps / fps))
+
+    app.logger.info(f"Video FPS: {video_fps}, sampling every {frame_interval} frames")
+
+    frames_data = []
+    frame_count = 0
+    processed_count = 0
+
+    try:
+        while cap.isOpened():
+            ret, frame = cap.read()
+            if not ret:
+                break
+            if frame is None or frame.size == 0:
+                frame_count += 1
+                continue
+
+            if frame_count % frame_interval == 0:
+                timestamp = frame_count / video_fps
+                frame_filename = f"frame_{processed_count:04d}.jpg"
+                frame_path = frames_dir / frame_filename
+                cv2.imwrite(str(frame_path), frame)
+
+                results = model(frame, verbose=False)
+                if len(results) > 0:
+                    frame_data = extract_keypoints_from_result(
+                        results[0],
+                        processed_count,
+                        timestamp,
+                        frame_image_path=str(frame_path)
+                    )
+                    frames_data.append(frame_data)
+
+                processed_count += 1
+
+            frame_count += 1
+    finally:
+        cap.release()
+        for frame_file in frames_dir.glob("*.jpg"):
+            try:
+                frame_file.unlink()
+            except OSError:
+                pass
+        try:
+            frames_dir.rmdir()
+        except OSError:
+            pass
+
+    app.logger.info(f"Processed {processed_count} frames from {total_frames_in_video} total frames")
+
+    pos_scores = {}
+    for frame in frames_data:
+        p = frame.get("predictedPosition")
+        c = frame.get("positionConfidence", 0.0)
+        if p and p != "unknown":
+            if p not in pos_scores:
+                pos_scores[p] = {"count": 0, "total_conf": 0.0}
+            pos_scores[p]["count"] += 1
+            pos_scores[p]["total_conf"] += c
+
+    best_pos = None
+    best_score = -1.0
+    for p, stats in pos_scores.items():
+        score = stats["count"] * (stats["total_conf"] / stats["count"])
+        if score > best_score:
+            best_score = score
+            best_pos = p
+
+    if best_pos:
+        app.logger.info(f"Stabilizing video position to: {best_pos} (score: {best_score:.2f})")
+        for frame in frames_data:
+            frame["predictedPosition"] = best_pos
+            avg_winner_conf = pos_scores[best_pos]["total_conf"] / pos_scores[best_pos]["count"]
+            frame["positionConfidence"] = avg_winner_conf
+            if "allTechniques" in frame:
+                filtered_techs = []
+                for t in frame["allTechniques"]:
+                    if t.get("type", "").upper() == "POSITION":
+                        if t.get("name") == best_pos:
+                            filtered_techs.append(t)
+                    else:
+                        filtered_techs.append(t)
+                has_winner = any(t.get("name") == best_pos for t in filtered_techs)
+                if not has_winner:
+                    filtered_techs.append({
+                        "type": "position",
+                        "name": best_pos,
+                        "confidence": avg_winner_conf,
+                        "source": "majority_vote",
+                        "reasoning": "Stabilized by majority vote"
+                    })
+                frame["allTechniques"] = filtered_techs
+
+    return {
+        "videoId": video_path.name,
+        "totalFrames": processed_count,
+        "samplingFps": fps,
+        "frames": frames_data
+    }
 
 
 @app.route('/health', methods=['GET'])
