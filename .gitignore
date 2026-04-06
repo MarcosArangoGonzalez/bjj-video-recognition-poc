@@ -59,4 +59,10 @@ python/temp_frames/
 
 python/temp_frames/
 *.pt
+<<<<<<< HEAD
 >>>>>>> 09d0757 (Eliminados archivos generados)
+=======
+
+python/temp_frames/
+*.pt
+>>>>>>> 46ab9b6 (Añadido temp_frames a .gitignore)
