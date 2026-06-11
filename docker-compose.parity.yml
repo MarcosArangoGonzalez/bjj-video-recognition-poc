@@ -56,8 +56,10 @@ services:
       YOLOV8_SERVICE_ENABLED: true
       YOLOV8_SERVICE_URL: http://poc-yolo:8081
       OPENAI_API_KEY: ${GEMINI_API_KEY}
+      GEMINI_API_KEY_2: ${GEMINI_API_KEY_2}
+      GEMINI_API_KEY_3: ${GEMINI_API_KEY_3}
       SPRING_AI_OPENAI_BASE_URL: https://generativelanguage.googleapis.com/v1beta/openai/
-      SPRING_AI_OPENAI_CHAT_OPTIONS_MODEL: gemini-2.0-flash
+      SPRING_AI_OPENAI_CHAT_OPTIONS_MODEL: gemini-2.5-flash
     volumes:
       - ./uploads:/app/uploads
     ports:
